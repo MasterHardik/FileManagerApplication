@@ -1,27 +1,65 @@
-document.addEventListener("DOMContentLoaded", function() {
-    fetch('/nodes')
-        .then(response => response.json())
-        .then(data => {
-            const treeDiv = document.getElementById('file-tree');
-            treeDiv.innerHTML = renderTree(data);
-        });
+document.addEventListener("DOMContentLoaded", function () {
+    const treeContainer = document.getElementById("file-tree");
 
-    function renderTree(nodes) {
-        if (!nodes || nodes.length === 0) return "<p>No files/folders</p>";
-
-        let html = "<ul>";
-        nodes.forEach(node => {
-            html += "<li>" + node.name;
-            if (node.children) {
-                html += renderTree(node.children);
-            }
-            html += "</li>";
-        });
-        html += "</ul>";
-        return html;
+    function fetchTree() {
+        fetch("/api/files/tree")
+            .then(res => res.json())
+            .then(data => {
+                treeContainer.innerHTML = "";
+                renderTree(data, treeContainer);
+            });
     }
-});
 
+    function renderTree(nodes, parent) {
+        const ul = document.createElement("ul");
+
+        nodes.forEach(node => {
+            const li = document.createElement("li");
+            li.textContent = node.name;
+
+            const actions = document.createElement("span");
+            actions.style.marginLeft = "10px";
+
+            // + only for folders
+            if (node.type === "FOLDER") {
+                const addBtn = document.createElement("button");
+                addBtn.textContent = "+";
+                addBtn.onclick = () => {
+                    const name = prompt("Name:");
+                    const type = prompt("folder/file").toUpperCase();
+                    fetch("/api/files", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name, type, parent: { id: node.id } })
+                    }).then(fetchTree);
+                };
+                actions.appendChild(addBtn);
+            }
+
+            const delBtn = document.createElement("button");
+            delBtn.textContent = "-";
+            delBtn.onclick = () => {
+                if (confirm("Delete?")) {
+                    fetch(`/api/files/${node.id}`, { method: "DELETE" })
+                        .then(fetchTree);
+                }
+            };
+            actions.appendChild(delBtn);
+
+            li.appendChild(actions);
+
+            if (node.children && node.children.length > 0) {
+                renderTree(node.children, li);
+            }
+
+            ul.appendChild(li);
+        });
+
+        parent.appendChild(ul);
+    }
+
+    fetchTree();
+});
 
 
 

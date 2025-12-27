@@ -1,11 +1,11 @@
 package com.example.fileManager.dto;
 
 import com.example.fileManager.model.NodeType;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileNodeDto {
+
     private Long id;
     private String name;
     private NodeType type;
@@ -19,7 +19,6 @@ public class FileNodeDto {
         this.type = type;
     }
 
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

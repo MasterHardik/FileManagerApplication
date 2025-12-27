@@ -19,9 +19,33 @@ public class FileNodeServiceImpl implements FileNodeService {
         return repository.findAll();
     }
 
+    // 🔥 TREE BUILDER
+    @Override
+    public List<FileNodeDto> getFileTree() {
+        return repository.findByParentIsNull()
+                .stream()
+                .map(this::buildTree)
+                .toList();
+    }
+
+    private FileNodeDto buildTree(FileNode node) {
+        FileNodeDto dto = new FileNodeDto(
+                node.getId(),
+                node.getName(),
+                node.getType()
+        );
+
+        List<FileNode> children = repository.findByParentId(node.getId());
+        for (FileNode child : children) {
+            dto.getChildren().add(buildTree(child));
+        }
+        return dto;
+    }
+
     @Override
     public FileNode getNodeById(Long id) {
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("Node not found"));
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Node not found"));
     }
 
     @Override
@@ -38,7 +62,6 @@ public class FileNodeServiceImpl implements FileNodeService {
 
     @Override
     public void deleteNode(Long id) {
-        // Recursive delete of children if any
         deleteChildren(id);
         repository.deleteById(id);
     }
@@ -50,22 +73,4 @@ public class FileNodeServiceImpl implements FileNodeService {
             repository.delete(child);
         }
     }
-
-    public FileNode createNodeParent(FileNode dto) {
-        FileNode node = new FileNode();
-        node.setName(dto.getName());
-        node.setType(dto.getType());
-
-        if (dto.getParent() != null && dto.getParent().getId() != null) {
-            FileNode parent = repository.findById(dto.getParent().getId())
-                    .orElseThrow(() -> new RuntimeException("Parent not found"));
-            node.setParent(parent);
-        } else {
-            // Root folder: no parent
-            node.setParent(null);
-        }
-
-        return repository.save(node);
-    }
-
 }
