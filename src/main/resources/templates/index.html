@@ -1,26 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
     <meta charset="UTF-8">
     <title>File Manager</title>
     <link rel="stylesheet" href="/css/tree.css">
 </head>
 <body>
+
 <h1>File Manager</h1>
-<ul id="file-tree">
-    <li th:each="node : ${fileTree}">
-        <span th:text="${node.name}"></span>
-        <ul th:if="${#lists.size(node.children) > 0}" th:insert="~{fragments/tree :: nodeList(node.children)}"></ul>
-    </li>
-</ul>
+
+<!-- JS will render everything here -->
+<div id="file-tree"></div>
+
 <script src="/js/tree.js"></script>
 </body>
 </html>
-
-<!-- Thymeleaf fragment -->
-<th:block th:fragment="nodeList(nodes)">
-    <li th:each="node : ${nodes}">
-        <span th:text="${node.name}"></span>
-        <ul th:if="${#lists.size(node.children) > 0}" th:insert="~{fragments/tree :: nodeList(node.children)}"></ul>
-    </li>
-</th:block>
