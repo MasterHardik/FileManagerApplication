@@ -7,39 +7,66 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 treeContainer.innerHTML = "";
                 renderTree(data, treeContainer);
-            });
+            })
+            .catch(err => console.error("Error fetching tree:", err));
     }
 
     function renderTree(nodes, parent) {
+        if (!nodes || nodes.length === 0) return;
+
         const ul = document.createElement("ul");
 
         nodes.forEach(node => {
             const li = document.createElement("li");
-            li.textContent = node.name;
 
+            // 1️⃣ Icon
+            const icon = document.createElement("span");
+            icon.textContent = node.type === "FOLDER" ? "📁 " : "📄 ";
+            li.appendChild(icon);
+
+            // 2️⃣ Node name
+            const nameSpan = document.createElement("span");
+            nameSpan.textContent = node.name;
+            li.appendChild(nameSpan);
+
+            // 3️⃣ Actions container
             const actions = document.createElement("span");
             actions.style.marginLeft = "10px";
 
-            // + only for folders
             if (node.type === "FOLDER") {
                 const addBtn = document.createElement("button");
                 addBtn.textContent = "+";
                 addBtn.onclick = () => {
-                    const name = prompt("Name:");
-                    const type = prompt("folder/file").toUpperCase();
+                    // 1️⃣ Ask type first
+                    const typeChoice = prompt("Enter type: folder or file").toLowerCase();
+                    if (typeChoice !== "folder" && typeChoice !== "file") {
+                        alert("Invalid type! Only 'folder' or 'file' allowed.");
+                        return;
+                    }
+                    const type = typeChoice === "folder" ? "FOLDER" : "FILE";
+
+                    // 2️⃣ Ask name
+                    const name = prompt("Enter name:");
+                    if (!name) return;
+
                     fetch("/api/files", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ name, type, parent: { id: node.id } })
+                        body: JSON.stringify({
+                            name: name,
+                            type: type,
+                            parent: { id: node.id }
+                        })
                     }).then(fetchTree);
                 };
                 actions.appendChild(addBtn);
             }
 
+            // Delete button
             const delBtn = document.createElement("button");
             delBtn.textContent = "-";
             delBtn.onclick = () => {
-                if (confirm("Delete?")) {
+                if (confirm(`Delete "${node.name}"?`)) {
                     fetch(`/api/files/${node.id}`, { method: "DELETE" })
                         .then(fetchTree);
                 }
@@ -48,9 +75,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             li.appendChild(actions);
 
+            // Render children recursively
             if (node.children && node.children.length > 0) {
                 renderTree(node.children, li);
             }
+
+            // Add class for CSS styling
+            li.className = node.type === "FOLDER" ? "folder" : "file";
 
             ul.appendChild(li);
         });
@@ -60,85 +91,3 @@ document.addEventListener("DOMContentLoaded", function () {
 
     fetchTree();
 });
-
-
-
-//document.addEventListener("DOMContentLoaded", function () {
-//    const treeContainer = document.getElementById("file-tree");
-//
-//    // Fetch and render tree
-//    function fetchTree() {
-//        fetch("/api/files")
-//            .then(response => response.json())
-//            .then(data => {
-//                treeContainer.innerHTML = "";
-//                renderTree(data, treeContainer);
-//            });
-//    }
-//
-//    // Recursive tree rendering
-//    function renderTree(nodes, parentElement) {
-//        const ul = document.createElement("ul");
-//        nodes.forEach(node => {
-//            const li = document.createElement("li");
-//            li.textContent = node.name;
-//            li.dataset.id = node.id;
-//
-//            // Buttons container
-//            const actions = document.createElement("span");
-//            actions.style.marginLeft = "10px";
-//
-//            // Add button (+)
-//            const addBtn = document.createElement("button");
-//            addBtn.textContent = "+";
-//            addBtn.onclick = () => {
-//                const newName = prompt("Enter new folder/file name:");
-//                if (!newName) return;
-//                const type = prompt("Enter type: folder or file:").toLowerCase() === "folder" ? "FOLDER" : "FILE";
-//                fetch("/api/files", {
-//                    method: "POST",
-//                    headers: { "Content-Type": "application/json" },
-//                    body: JSON.stringify({ name: newName, type: type, parent: { id: node.id } })
-//                }).then(fetchTree);
-//            };
-//            actions.appendChild(addBtn);
-//
-//            // Delete button (-)
-//            const delBtn = document.createElement("button");
-//            delBtn.textContent = "-";
-//            delBtn.onclick = () => {
-//                if (confirm(`Are you sure you want to delete "${node.name}"?`)) {
-//                    fetch(`/api/files/${node.id}`, { method: "DELETE" })
-//                        .then(fetchTree);
-//                }
-//            };
-//            actions.appendChild(delBtn);
-//
-//            // Rename button
-//            const renameBtn = document.createElement("button");
-//            renameBtn.textContent = "Rename";
-//            renameBtn.onclick = () => {
-//                const newName = prompt("Enter new name:", node.name);
-//                if (!newName) return;
-//                fetch(`/api/files/${node.id}`, {
-//                    method: "PUT",
-//                    headers: { "Content-Type": "application/json" },
-//                    body: JSON.stringify({ name: newName })
-//                }).then(fetchTree);
-//            };
-//            actions.appendChild(renameBtn);
-//
-//            li.appendChild(actions);
-//
-//            // Render children if exist
-//            if (node.children && node.children.length > 0) {
-//                renderTree(node.children, li);
-//            }
-//
-//            ul.appendChild(li);
-//        });
-//        parentElement.appendChild(ul);
-//    }
-//
-//    fetchTree();
-//});

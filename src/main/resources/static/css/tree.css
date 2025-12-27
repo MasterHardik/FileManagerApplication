@@ -1,7 +1,26 @@
-ul {
-    list-style-type: none;
+ul { list-style: none; padding-left: 20px; }
+
+li.folder {
+    border: 1px solid #4CAF50;
+    padding: 3px 5px;
+    margin: 2px 0;
+    border-radius: 4px;
+    background-color: #e8f5e9;
 }
 
-li {
-    margin-left: 20px;
+li.file {
+    border: 1px solid #2196F3;
+    padding: 3px 5px;
+    margin: 2px 0;
+    border-radius: 4px;
+    background-color: #e3f2fd;
+}
+
+li.folder span:first-child,
+li.file span:first-child {
+    margin-right: 5px; /* space after icon */
+}
+
+li:hover {
+    background-color: #f0f0f0;
 }
