@@ -34,29 +34,51 @@ document.addEventListener("DOMContentLoaded", function () {
             actions.style.marginLeft = "10px";
 
             if (node.type === "FOLDER") {
+                // Toggle expand/collapse
+                const toggleBtn = document.createElement("button");
+                toggleBtn.textContent = "▼"; // initially expanded
+                toggleBtn.style.marginRight = "5px";
+
+                const childUl = document.createElement("ul");
+                childUl.style.listStyle = "none";
+                childUl.style.paddingLeft = "20px";
+
+                if (node.children && node.children.length > 0) {
+                    renderTree(node.children, childUl);
+                }
+
+                toggleBtn.onclick = () => {
+                    if (childUl.style.display === "none") {
+                        childUl.style.display = "block";
+                        toggleBtn.textContent = "▼";
+                    } else {
+                        childUl.style.display = "none";
+                        toggleBtn.textContent = "▶";
+                    }
+                };
+
+                li.prepend(toggleBtn);
+
+                // Add child UL after actions
+                li.appendChild(childUl);
+
+                // Add folder creation button
                 const addBtn = document.createElement("button");
                 addBtn.textContent = "+";
                 addBtn.onclick = () => {
-                    // 1️⃣ Ask type first
                     const typeChoice = prompt("Enter type: folder or file").toLowerCase();
                     if (typeChoice !== "folder" && typeChoice !== "file") {
                         alert("Invalid type! Only 'folder' or 'file' allowed.");
                         return;
                     }
                     const type = typeChoice === "folder" ? "FOLDER" : "FILE";
-
-                    // 2️⃣ Ask name
                     const name = prompt("Enter name:");
                     if (!name) return;
 
                     fetch("/api/files", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            name: name,
-                            type: type,
-                            parent: { id: node.id }
-                        })
+                        body: JSON.stringify({ name, type, parent: { id: node.id } })
                     }).then(fetchTree);
                 };
                 actions.appendChild(addBtn);
@@ -75,14 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             li.appendChild(actions);
 
-            // Render children recursively
-            if (node.children && node.children.length > 0) {
-                renderTree(node.children, li);
-            }
-
-            // Add class for CSS styling
             li.className = node.type === "FOLDER" ? "folder" : "file";
-
             ul.appendChild(li);
         });
 
