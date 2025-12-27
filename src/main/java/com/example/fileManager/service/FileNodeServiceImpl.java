@@ -1,5 +1,6 @@
 package com.example.fileManager.service;
 
+import com.example.fileManager.dto.FileNodeDto;
 import com.example.fileManager.model.FileNode;
 import com.example.fileManager.repository.FileNodeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,4 +50,22 @@ public class FileNodeServiceImpl implements FileNodeService {
             repository.delete(child);
         }
     }
+
+    public FileNode createNodeParent(FileNode dto) {
+        FileNode node = new FileNode();
+        node.setName(dto.getName());
+        node.setType(dto.getType());
+
+        if (dto.getParent() != null && dto.getParent().getId() != null) {
+            FileNode parent = repository.findById(dto.getParent().getId())
+                    .orElseThrow(() -> new RuntimeException("Parent not found"));
+            node.setParent(parent);
+        } else {
+            // Root folder: no parent
+            node.setParent(null);
+        }
+
+        return repository.save(node);
+    }
+
 }

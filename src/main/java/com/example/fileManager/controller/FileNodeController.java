@@ -1,9 +1,10 @@
 package com.example.fileManager.controller;
 
 import com.example.fileManager.model.FileNode;
-import com.example.fileManager.model.NodeType;
 import com.example.fileManager.service.FileNodeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,4 +45,11 @@ public class FileNodeController {
     public void deleteFile(@PathVariable Long id) {
         fileNodeService.deleteNode(id);
     }
+
+    @PostMapping("/api/parent")
+    public ResponseEntity<FileNode> createFileNodeParent(@RequestBody FileNode dto) {
+        FileNode createdNode = fileNodeService.createNodeParent(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdNode);
+    }
+
 }
